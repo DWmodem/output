@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. ../output.sh
+
+echodetails "This is so bad." 
