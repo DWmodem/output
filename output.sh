@@ -1,37 +1,90 @@
 # This file is meant to be sourced
-##set -eu
+# -*- tab-width: 4; encoding: utf-8 -*-
+#
+## @file
+## @author Philippe Courtemanche <philippe@courtemanche.io>
+## @brief Simple Bash Output Formatting Library
+## @copyright MIT
+## @version 0.1
+#
+#########
+# License:
+#
+# Copyright (c) 2017 Philippe Courtemanche
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
-# -1 Do not stir for you may awaken c'thulhu
-#  0 Is quiet    					--quiet
-#  1 Is regular
-#  2 Is verbose 			-v 		--verbose
-#  3 Is just ridiculous 	-vv 	--very-verbose
-IO_VERBOSITY=1
-IO_TABBING_LEVEL=0
-MAX_IO_TABBING=20
+#########
+#
+## @details
+## @par URL
+## https://github.com/DWModem/output.git @n
+#
+## @par Purpose
+#
+## To help with common output functionnality such as:
+## formatting, tabbing, and verbosity control
+## commonly rewritten in all scripts.
+##
+## @note
+## This library is implemented for bash version 4. Prior versions of
+## bash will exhibit undefined behavior.
 
-nest_output() {
-    IO_TABBING_LEVEL="$((++IO_TABBING_LEVEL))"
+__DWMO_VERBOSITY=1
+__DWMO_TABBING_LEVEL=0
+__DWMO_MAX_TABBING=20
+
+#######################################
+# Nest the output for any subsequent command by one more tab.
+#
+# Globals:
+#   integer __DWMO_TABBING_LEVEL
+#   integer __DWMO_MAX_TABBING
+#
+# Arguments:
+#   None
+#
+# Returns:
+#   None
+#
+#######################################
+__dwmo_nest_output() {
+    __DWMO_TABBING_LEVEL="$((++__DWMO_TABBING_LEVEL))"
 
     # Limit tabbing because at some point it just makes no sense
-    if [[ "$IO_TABBING_LEVEL" -gt "$MAX_IO_TABBING" ]]; then
-        IO_TABBING_LEVEL="$MAX_IO_TABBING"
+    if [[ "$__DWMO_TABBING_LEVEL" -gt "$__DWMO_MAX_TABBING" ]]; then
+        __DWMO_TABBING_LEVEL="$__DWMO_MAX_TABBING"
     fi
 }
 
-unnest_output() {
-    IO_TABBING_LEVEL="$((--IO_TABBING_LEVEL))"
-    if [[ IO_TABBING_LEVEL -lt 0 ]]; then
-        IO_TABBING_LEVEL=0
+__dwmo_unnest_output() {
+    __DWMO_TABBING_LEVEL="$((--__DWMO_TABBING_LEVEL))"
+    if [[ __DWMO_TABBING_LEVEL -lt 0 ]]; then
+        __DWMO_TABBING_LEVEL=0
     fi
 }
 
-reset_nesting() {
-    IO_TABBING_LEVEL=0
-
+__dwmo_reset_nesting() {
+    __DWMO_TABBING_LEVEL=0
 }
 
-output_echostuff() {
+__dwmo_output_echostuff() {
     local msg
     local no_newline
     local tabbing
@@ -117,13 +170,13 @@ output_echostuff() {
 done
     
     # Get desired output tabbing
-    for ((i = 0; i < "$IO_TABBING_LEVEL"; i++)); do
+    for ((i = 0; i < "$__DWMO_TABBING_LEVEL"; i++)); do
         tabbing="$tabbing    "
     done
 
-    # IO_VERBOSITY:         How verbose we are feeling
+    # __DWMO_VERBOSITY:     How verbose we are feeling
     # output_threshold:     How verbose we need to be feeling to see output
-    if [[ "$IO_VERBOSITY" -lt "$output_threshold" ]]; then
+    if [[ "$__DWMO_VERBOSITY" -lt "$output_threshold" ]]; then
         return 0;
     fi
 
@@ -132,9 +185,21 @@ done
     else 
         echo -e ${no_newline:-} "$tabbing""${formatting}${msg}${end_formatting}" >&2
     fi
+
     return 0 
 }
 
+nest_output() {
+    __dwmo_nest_output "$@"
+}
+
+unnest_output() {
+    __dwmo_unnest_output "$@"
+}
+
+reset_nesting() {
+    __dwmo_reset_nesting "$@"
+}
 
 echoerr() {
     output_echostuff --output-threshold=0 --error "$@"
@@ -151,3 +216,4 @@ echoinfo() {
 echodetail() {
     output_echostuff --output-threshold=2 --detail "$@"
 }
+
