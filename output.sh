@@ -122,7 +122,7 @@ __dwmo_reset_nesting() {
 #
 #######################################
 __dwmo_register_logger() {
-
+    echo "This is a work in progress"
 }
 
 __dwmo_output() {
@@ -131,6 +131,7 @@ __dwmo_output() {
     local tabbing=""
     local tabbing_level=0
     local formatting=""
+    local logger_msg=""
     local error_formatting="\033[0;41m"
     local info_formatting="\033[0;33m"
     local success_formatting="\033[0;32m"
@@ -188,6 +189,11 @@ __dwmo_output() {
             ;;
         *)
             msg="$msg${formatting}$1${end_formatting}"
+            __DWMO_REGISTERED_LOGGER="echo"
+
+            if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
+                logger_msg="${logger_msg}${1}"
+            fi
             shift
             ;;
     esac
@@ -198,6 +204,10 @@ done
         tabbing="$tabbing    "
     done
 
+    if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
+        $__DWMO_REGISTERED_LOGGER "$logger_msg"
+    fi
+    
     # __DWMO_VERBOSITY:     How verbose we are feeling
     # output_threshold:     How verbose we need to be feeling to see output
     if [[ "$__DWMO_VERBOSITY" -lt "$output_threshold" ]]; then
