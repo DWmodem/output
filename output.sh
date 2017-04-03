@@ -46,9 +46,32 @@
 ## This library is implemented for bash version 4. Prior versions of
 ## bash will exhibit undefined behavior.
 
+#######################################
+# Verbosity level
+# Increase the verbosity level to get more output from a script
+# Reduce it to keep it quiet.
+#
+# The default Output threshold is 1. So when __DWMO_VERBOSITY is 1
+# Any calls to __dwmo_output will be output.
+# However, a call to __dwmo_output --output-threshold=2 will not output
+# 
+#######################################
 __DWMO_VERBOSITY=1
+
+#######################################
+# Tabbing Level
+#
+# The higher the tabbing level, the more tabs are placed before output.
+#
+# Increase the tabbing level with:
+# __dwmo_output ++
+#
+# Decrease the tabbing level with:
+# __dwmo_output --
+#######################################
 __DWMO_TABBING_LEVEL=0
 __DWMO_MAX_TABBING=20
+__DWMO_REGISTERED_LOGGER=""
 
 #######################################
 # Nest the output for any subsequent command by one more tab.
@@ -84,30 +107,36 @@ __dwmo_reset_nesting() {
     __DWMO_TABBING_LEVEL=0
 }
 
-__dwmo_output_echostuff() {
-    local msg
-    local no_newline
-    local tabbing
-    local tabbing_level
-    local formatting
-    local error_formatting
-    local info_formatting
-    local success_formatting
-    local details_formatting
-    local end_formatting
-    local output_threshold
+#######################################
+# A command to call with the unformatted message
+# for every call to output
+#
+# Globals:
+#   integer __DWMO_REGISTERED_LOGGER
+#
+# Arguments:
+#   Logger path: "/usr/bin/mylogger"
+#
+# Returns:
+#   None
+#
+#######################################
+__dwmo_register_logger() {
 
-    msg=""
-    no_newline=""
-    tabbing=""
-    tabbing_level=0
-    formatting=""
-    error_formatting="\033[0;41m"
-    info_formatting="\033[0;33m"
-    success_formatting="\033[0;32m"
-    details_formatting="\033[0;36mVV: "
-    end_formatting="\033[0;0m"
-    output_threshold=1
+}
+
+__dwmo_output() {
+    local msg=""
+    local no_newline=""
+    local tabbing=""
+    local tabbing_level=0
+    local formatting=""
+    local error_formatting="\033[0;41m"
+    local info_formatting="\033[0;33m"
+    local success_formatting="\033[0;32m"
+    local details_formatting="\033[0;36m: "
+    local end_formatting="\033[0;0m"
+    local output_threshold=1
 
     while [[ -n "${1:-}" ]]; do
     case "$1" in
@@ -115,21 +144,16 @@ __dwmo_output_echostuff() {
             no_newline="-n"
             shift
             ;;
-        -f|--no-format)
-            # This allows you to get really fancy with this library
-            formatting=""
-            shift
-            ;;
         --|--unnested)
-            unnest_output
+            __dwmo_unnest_output
             shift
             ;;
         ++|--nested)
-            nest_output
+            __dwmo_nest_output
             shift
             ;;
         ++--|--++|--reset-nesting)
-            reset_nesting
+            __dwmo_reset_nesting
             shift
             ;;
         --output-threshold=*)
@@ -163,7 +187,7 @@ __dwmo_output_echostuff() {
             shift
             ;;
         *)
-            msg="$msg$1"
+            msg="$msg${formatting}$1${end_formatting}"
             shift
             ;;
     esac
@@ -180,11 +204,7 @@ done
         return 0;
     fi
 
-    if [[ -z "$formatting" ]]; then
-        echo ${no_newline:-} "$tabbing""$msg"
-    else 
-        echo -e ${no_newline:-} "$tabbing""${formatting}${msg}${end_formatting}" >&2
-    fi
+    echo -e ${no_newline:-} "$tabbing""$msg" >&2
 
     return 0 
 }
@@ -202,18 +222,18 @@ reset_nesting() {
 }
 
 echoerr() {
-    output_echostuff --output-threshold=0 --error "$@"
+    __dwmo_output --output-threshold=0 --error "$@"
 }
 
 echosuccess() {
-    output_echostuff --success "$@"
+    __dwmo_output --success "$@"
 }
 
 echoinfo() {
-    output_echostuff --info "$@"
+    __dwmo_output --info "$@"
 }
 
 echodetail() {
-    output_echostuff --output-threshold=2 --detail "$@"
+    __dwmo_output --output-threshold=2 --detail "$@"
 }
 
