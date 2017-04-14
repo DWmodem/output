@@ -127,7 +127,7 @@ __dwmo_register_logger() {
 
 __dwmo_output() {
     local msg=""
-    local no_newline=""
+    local no_newline="\n"
     local tabbing=""
     local tabbing_level=0
     local formatting=""
@@ -142,7 +142,7 @@ __dwmo_output() {
     while [[ -n "${1:-}" ]]; do
     case "$1" in
         -n)
-            no_newline="-n"
+            no_newline=""
             shift
             ;;
         --|--unnested)
@@ -189,34 +189,34 @@ __dwmo_output() {
             ;;
         *)
             msg="$msg${formatting}$1${end_formatting}"
-            __DWMO_REGISTERED_LOGGER="echo"
 
             if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
                 logger_msg="${logger_msg}${1}"
             fi
             shift
             ;;
-    esac
-done
+        esac
+    done
     
     # Get desired output tabbing
     for ((i = 0; i < "$__DWMO_TABBING_LEVEL"; i++)); do
         tabbing="$tabbing    "
     done
 
+    # What if the user registers nonsense as a logger?
     if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
         $__DWMO_REGISTERED_LOGGER "$logger_msg"
     fi
-    
+
     # __DWMO_VERBOSITY:     How verbose we are feeling
     # output_threshold:     How verbose we need to be feeling to see output
     if [[ "$__DWMO_VERBOSITY" -lt "$output_threshold" ]]; then
-        return 0;
+        return 0
     fi
 
-    echo -e ${no_newline:-} "$tabbing""$msg" >&2
+    printf "$tabbing""$msg""$no_newline" >&2
 
-    return 0 
+    return 0
 }
 
 nest_output() {
