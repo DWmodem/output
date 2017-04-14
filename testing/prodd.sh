@@ -13,7 +13,7 @@
 
 # Best approximation for current running dir
 STD_DIR2="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IO_VERBOSITY=34
+__DWMO_VERBOSITY=1
 
 # Validate that the test case at dir arg1 is a test case with no missing pieces
 # 
