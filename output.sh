@@ -1,7 +1,7 @@
 # This file is meant to be sourced
 # -*- tab-width: 4; encoding: utf-8 -*-
 #
-## @file
+## @file output.sh
 ## @author Philippe Courtemanche <philippe@courtemanche.io>
 ## @brief Simple Bash Output Formatting Library
 ## @copyright MIT
@@ -71,7 +71,6 @@ __DWMO_VERBOSITY=1
 #######################################
 __DWMO_TABBING_LEVEL=0
 __DWMO_MAX_TABBING=20
-__DWMO_REGISTERED_LOGGER=""
 
 #######################################
 # Nest the output for any subsequent command by one more tab.
@@ -111,6 +110,11 @@ __dwmo_reset_nesting() {
 # A command to call with the unformatted message
 # for every call to output
 #
+# If there is a registered logger, 
+# It will be called with each unformatted message before it is printed
+# 
+# The Logger can be a function or a program or even a bash builtin
+#
 # Globals:
 #   integer __DWMO_REGISTERED_LOGGER
 #
@@ -120,9 +124,20 @@ __dwmo_reset_nesting() {
 # Returns:
 #   None
 #
+#
+# Example:
+#     logger() {
+#         local msg="$1"
+#         echo "$msg" >> "$DIR"/logs.txt
+#     }
+#
+#      __dwmo_register_logger logger
+#
 #######################################
+__DWMO_REGISTERED_LOGGER=""
+
 __dwmo_register_logger() {
-    echo "This is a work in progress"
+    __DWMO_REGISTERED_LOGGER="$@"
 }
 
 __dwmo_output() {
@@ -137,6 +152,8 @@ __dwmo_output() {
     local success_formatting="\033[0;32m"
     local details_formatting="\033[0;36m: "
     local end_formatting="\033[0;0m"
+    local checkmark="✔"
+    local ballot_x="✘"
     local output_threshold=1
 
     while [[ -n "${1:-}" ]]; do
@@ -203,9 +220,8 @@ __dwmo_output() {
         tabbing="$tabbing    "
     done
 
-    # What if the user registers nonsense as a logger?
     if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
-        $__DWMO_REGISTERED_LOGGER "$logger_msg"
+        ($__DWMO_REGISTERED_LOGGER "$logger_msg")
     fi
 
     # __DWMO_VERBOSITY:     How verbose we are feeling
@@ -214,7 +230,7 @@ __dwmo_output() {
         return 0
     fi
 
-    printf "$tabbing""$msg""$no_newline" >&2
+    printf "$tabbing""$msg""$no_newline"
 
     return 0
 }
@@ -232,7 +248,7 @@ reset_nesting() {
 }
 
 echoerr() {
-    __dwmo_output --output-threshold=0 --error "$@"
+    __dwmo_output --output-threshold=0 --error "$@" >&2
 }
 
 echosuccess() {

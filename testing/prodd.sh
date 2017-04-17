@@ -13,6 +13,13 @@
 
 # Best approximation for current running dir
 STD_DIR2="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+logger() {
+    local msg="$1"
+    echo "$msg" >> "$STD_DIR2"/logs.txt
+}
+
+# __dwmo_register_logger logger
 __DWMO_VERBOSITY=1
 
 # Validate that the test case at dir arg1 is a test case with no missing pieces
@@ -65,6 +72,7 @@ validate_test_case() {
 
 # Find every test case in this directory
 cases="$(find . -maxdepth 1 -mindepth 1 -type d -name 'case_*' -printf '%f ')"
+
 
 # Cycle and test all test cases
 for case in $cases; do
