@@ -68,6 +68,7 @@ __DWMO_VERBOSITY=1
 #
 # Decrease the tabbing level with:
 # __dwmo_output --
+#
 #######################################
 __DWMO_TABBING_LEVEL=0
 __DWMO_MAX_TABBING=20
@@ -204,6 +205,22 @@ __dwmo_output() {
             formatting="$details_formatting"
             shift
             ;;
+        -k|--checkmark)
+            msg="$msg${formatting}$checkmark ${end_formatting}"
+
+            if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
+                logger_msg="${logger_msg}${1}"
+            fi
+            shift
+            ;;
+        -x|--ballotx)
+            msg="$msg${formatting}$ballot_x ${end_formatting}"
+
+            if [[ ! -z "$__DWMO_REGISTERED_LOGGER" ]]; then
+                logger_msg="${logger_msg}${1}"
+            fi
+            shift
+            ;;
         *)
             msg="$msg${formatting}$1${end_formatting}"
 
@@ -235,31 +252,44 @@ __dwmo_output() {
     return 0
 }
 
-nest_output() {
-    __dwmo_nest_output "$@"
-}
+#######################################
+# Predefined Functions
+#
+# These are a set of useful predefined functions for output.
+# They include the functions for nesting output, and for different formats of output.
+#
+# If you wish to define your own output functions using these names,
+# set  $__DWMO_DONT_USE_PREDEFINED_FUNCS="any non-null value"
+#
+#######################################
+if [[ ! -z ${__DWMO_DONT_USE_PREDEFINED_FUNCS:-word} ]]; then
 
-unnest_output() {
-    __dwmo_unnest_output "$@"
-}
+    nest_output() {
+        __dwmo_nest_output "$@"
+    }
 
-reset_nesting() {
-    __dwmo_reset_nesting "$@"
-}
+    unnest_output() {
+        __dwmo_unnest_output "$@"
+    }
 
-echoerr() {
-    __dwmo_output --output-threshold=0 --error "$@" >&2
-}
+    reset_nesting() {
+        __dwmo_reset_nesting "$@"
+    }
 
-echosuccess() {
-    __dwmo_output --success "$@"
-}
+    echoerr() {
+        __dwmo_output --output-threshold=0 --error "$@" >&2
+    }
 
-echoinfo() {
-    __dwmo_output --info "$@"
-}
+    echosuccess() {
+        __dwmo_output --success "$@"
+    }
 
-echodetail() {
-    __dwmo_output --output-threshold=2 --detail "$@"
-}
+    echoinfo() {
+        __dwmo_output --info "$@"
+    }
 
+    echodetail() {
+        __dwmo_output --output-threshold=2 --detail "$@"
+    }
+
+fi
