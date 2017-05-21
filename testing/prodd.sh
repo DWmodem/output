@@ -20,7 +20,7 @@ logger() {
 }
 
 # __dwmo_register_logger logger
-__DWMO_VERBOSITY=1
+__DWMO_VERBOSITY=2
 
 # Validate that the test case at dir arg1 is a test case with no missing pieces
 # 
@@ -84,7 +84,7 @@ for case in $cases; do
         echoinfo ""
         echo "yep"
     else
-        echoerr "Did not test: $case. Not a valid test case."
+        echoerr -x "Did not test: $case. Not a valid test case."
     fi
     unnest_output
 
